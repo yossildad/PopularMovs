@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">PopularMovs</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="sotr_popular">Popular</string>
+    <string name="sort_rated">Rated</string>
+    <string name="image_base_url">http://image.tmdb.org/t/p/</string>
+    <string name="image_format">w185</string>
+</resources>
