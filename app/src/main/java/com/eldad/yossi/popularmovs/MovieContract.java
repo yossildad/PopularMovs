@@ -10,9 +10,10 @@ public class MovieContract {
 
     //The authority of this application and no of the TMDB service
     public static final String CONTENT_AUTHORITY ="com.eldad.yossi.popularmovs";
-
     public static final Uri BASE_CONTENT_URI = Uri.parse("content://" + CONTENT_AUTHORITY);
     public static final String MOVIES_PATH = "movies";
+    public static final Uri CONTENT_URI =
+            BASE_CONTENT_URI.buildUpon().appendPath(MOVIES_PATH).build();
 
 
 

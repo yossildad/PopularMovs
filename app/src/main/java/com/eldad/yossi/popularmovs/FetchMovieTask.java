@@ -149,9 +149,10 @@ public FetchMovieTask(Context context){
                 myMovie.setmRating(movJson.getDouble(JO_RATING));
                 String releaseString = movJson.getString(JO_RELEASE);
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-                Date convertedDate = new Date();
+
                 try {
-                    myMovie.setmReleaseDate(convertedDate = dateFormat.parse(releaseString));
+                    Date convertedDate =new SimpleDateFormat("yyyyD").parse(movJson.getString(JO_RELEASE));
+                    myMovie.setmReleaseDate(convertedDate);
                 } catch (ParseException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();

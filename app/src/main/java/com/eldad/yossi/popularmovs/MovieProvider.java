@@ -8,6 +8,9 @@ import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
+import android.util.Log;
+
+import java.sql.SQLException;
 
 /**
  * Created by Yossi on 18/10/2015.
@@ -49,7 +52,7 @@ public class MovieProvider extends ContentProvider {
 
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
-        int rowsNum = 0;
+        int rowsNum = -1;
         //in order to delete all the table when selection is null
         if (selection == null) selection = "1";
 
@@ -66,7 +69,10 @@ public class MovieProvider extends ContentProvider {
         // Because a null deletes all rows
         if (rowsNum != 0) {
             getContext().getContentResolver().notifyChange(uri, null);}
+        db.close();
         return rowsNum;
+
+
     }
 
     @Override
@@ -78,46 +84,87 @@ public class MovieProvider extends ContentProvider {
 
     @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
-        return null;
+        Cursor c = null;
+
+         switch (matcher.match(uri))
+         {
+            //for the detailed screen (a single movie), the selection will contain the id field name and the args the id number
+             case MOVIE:{
+                 MoviesDbHelper moviesDbHelper = new MoviesDbHelper(getContext());
+                 SQLiteDatabase db = moviesDbHelper.getReadableDatabase();
+                 c = db.query(MovieContract.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
+                 db.close();
+                 break;
+             }
+             //for the home screen in which
+             case MOVIES_LIST:{
+                 MoviesDbHelper moviesDbHelper = new MoviesDbHelper(getContext());
+                 SQLiteDatabase db = moviesDbHelper.getReadableDatabase();
+                 c = db.query(MovieContract.TABLE_NAME,projection,selection,selectionArgs,null,null,sortOrder);
+                 db.close();
+                 break;
+             }
+             default:
+             {
+                 throw new UnsupportedOperationException("Unknown uri: " + uri);
+             }
+         }
+        return c;
     }
 
     @Override
     public Uri insert(Uri uri, ContentValues values) {
         long id;
         Uri uriInserted = null;
-        if (matcher.match(uri) == MOVIE){
+        if (matcher.match(uri) == MOVIES_LIST){
             SQLiteDatabase db = moviesDbHelper.getWritableDatabase();
             id = db.insert(MovieContract.TABLE_NAME,null,values);
-            uriInserted = ContentUris.withAppendedId(MovieContract.BASE_CONTENT_URI,id);
+            uriInserted = ContentUris.withAppendedId(MovieContract.BASE_CONTENT_URI, id);
+            db.close();
         }
         else{
             throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
         getContext().getContentResolver().notifyChange(uriInserted,null);
+
         return uriInserted;
     }
 
     @Override
     public int bulkInsert(Uri uri, ContentValues[] values) {
         super.bulkInsert(uri, values);
-        int rowsNum = 0;
-        if (matcher.match(uri) == MOVIE) {
+        if (matcher.match(uri) == MOVIES_LIST && values != null) {
             SQLiteDatabase db = moviesDbHelper.getWritableDatabase();
             db.beginTransaction();
-            try{
-                for (rowsNum = 0;rowsNum > values.length;rowsNum++){
-                    db.insertOrThrow(MovieContract.TABLE_NAME,null,values[rowsNum]);
+            try {
+                for (ContentValues cv : values) {
+                    long newId = db.insertOrThrow(MovieContract.TABLE_NAME, null, cv);
+                    if (newId == -1)
+                        throw new SQLException("Failed to insert row into " + uri);
                 }
+
+            }
+            catch (SQLException e)
+            {
+                Log.e("MovieProvider","failed to insert row in bulk insert. the uri is: " + uri.toString());
             }
 
             finally {
+                getContext().getContentResolver().notifyChange(uri,null);
+                db.setTransactionSuccessful();
                 db.endTransaction();
+                db.close();
             }
+        }
+            else
+            {
+                throw new UnsupportedOperationException("Unknown uri: " + uri);
             }
-        return rowsNum + 1;
+        return values.length;
 
     }
 
+    //not used in this project
     @Override
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
         int id;
@@ -126,6 +173,7 @@ public class MovieProvider extends ContentProvider {
             SQLiteDatabase db = moviesDbHelper.getWritableDatabase();
             id = db.update(MovieContract.TABLE_NAME,values,selection,selectionArgs);
             uriInserted = ContentUris.withAppendedId(MovieContract.BASE_CONTENT_URI, id);
+            db.close();
         }
         else{
             throw new UnsupportedOperationException("Unknown uri: " + uri);
