@@ -1,9 +1,14 @@
 <resources>
     <string name="app_name">PopularMovs</string>
-    <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
     <string name="sotr_popular">Popular</string>
+    <string name="pref_label_popular">Most Popular</string>
+    <string name="pref_label_rating">Top Rated</string>
     <string name="sort_rated">Rated</string>
     <string name="image_base_url">http://image.tmdb.org/t/p/</string>
     <string name="image_format">w185</string>
+    <string name="preference_file_key">SortOrder</string>
+    <string name="saved_page">Page</string>
+    <string name="pref_sort_label">Sorting Order</string>
+    <string name="title_activity_settings">Settings</string>
 </resources>

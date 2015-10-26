@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="COL_ID">0</integer>
+    <integer name="COL_TITLE">1</integer>
+    <integer name="COL_OVERVIEW">2</integer>
+    <integer name="COL_POSTER">3</integer>
+    <integer name="COL_RATING">4</integer>
+    <integer name="COL_RELEASE">5</integer>
+    <integer name="COL_IMDBID">6</integer>
+</resources>

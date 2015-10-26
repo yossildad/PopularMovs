@@ -8,6 +8,16 @@ import android.net.Uri;
  */
 public class MovieContract {
 
+    //the column order in the table for using with cursors
+    public static final int COL_ID = 0;
+    public static final int COL_TITLE = 1;
+    public static final int COL_OVERVIEW = 2;
+    public static final int COL_POSTER = 3;
+    public static final int COL_RATING = 4;
+    public static final int COL_RELEASE = 5;
+    public static final int COL_IMDBID = 6;
+
+
     //The authority of this application and no of the TMDB service
     public static final String CONTENT_AUTHORITY ="com.eldad.yossi.popularmovs";
     public static final Uri BASE_CONTENT_URI = Uri.parse("content://" + CONTENT_AUTHORITY);
@@ -27,7 +37,7 @@ public class MovieContract {
 
 
     //Table data
-    public static String COLUMN_ID = "_id";
+    public static String _ID = "_id";
     public static String TABLE_NAME = "movie";
 
     public static String COLUMN_TITLE = "title";

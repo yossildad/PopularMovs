@@ -30,7 +30,7 @@ public class MoviesDbHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
 
         //The Create Table statement for the movie table
-        final String CREATE_MOVIE_TABLE = "CREATE TABLE " + MovieContract.TABLE_NAME + " (" + MovieContract.COLUMN_ID + " INTEGER PRIMARY KEY, " +
+        final String CREATE_MOVIE_TABLE = "CREATE TABLE " + MovieContract.TABLE_NAME + " (" + MovieContract._ID + " INTEGER PRIMARY KEY, " +
                 MovieContract.COLUMN_TITLE + " TEXT NOT NULL, " +
                 MovieContract.COLUMN_OVERVIEW + " TEXT NOT NULL, " +
                 MovieContract.COLUMN_POSTER + " TEXT NOT NULL, " +
@@ -39,5 +39,6 @@ public class MoviesDbHelper extends SQLiteOpenHelper {
                 //in case I'll need it for stage 2
                 MovieContract.COLUMN_IMDB_ID + " INTEGER)";
         db.execSQL(CREATE_MOVIE_TABLE);
+
     }
 }
