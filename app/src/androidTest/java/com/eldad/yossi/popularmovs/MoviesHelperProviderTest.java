@@ -52,7 +52,7 @@ public class MoviesHelperProviderTest extends AndroidTestCase {
 
         // Build a HashSet of all of the column names we want to look for
         final HashSet<String> locationColumnHashSet = new HashSet<String>();
-        locationColumnHashSet.add(MovieContract.COLUMN_ID);
+        locationColumnHashSet.add(MovieContract._ID);
         locationColumnHashSet.add(MovieContract.COLUMN_IMDB_ID);
         locationColumnHashSet.add(MovieContract.COLUMN_OVERVIEW);
         locationColumnHashSet.add(MovieContract.COLUMN_POSTER);
@@ -160,7 +160,7 @@ public class MoviesHelperProviderTest extends AndroidTestCase {
         inserted = mContext.getContentResolver().insert(MovieContract.CONTENT_URI, cv);
         rowId = ContentUris.parseId(inserted);
         assertTrue(rowId != -1);
-        deletedRows = mContext.getContentResolver().delete(MovieContract.CONTENT_URI,MovieContract.COLUMN_ID + " = ?",new String[]{Long.toString(rowId)});
+        deletedRows = mContext.getContentResolver().delete(MovieContract.CONTENT_URI,MovieContract._ID + " = ?",new String[]{Long.toString(rowId)});
         assertTrue("Deleting one row failed",deletedRows == 1);
 
 
@@ -190,5 +190,10 @@ public class MoviesHelperProviderTest extends AndroidTestCase {
         int rowsInserted = mContext.getContentResolver().bulkInsert(MovieContract.CONTENT_URI,cvArr);
         assertEquals("The number of rows inserted was wrong",2,rowsInserted);
 
+    }
+
+    public void testRowCount(){
+        Cursor c = mContext.getContentResolver().query(MovieContract.CONTENT_URI,null,null,null,null,null);
+        assertEquals("Not zero. the num of rows is: ",0,c.getCount());
     }
 }
