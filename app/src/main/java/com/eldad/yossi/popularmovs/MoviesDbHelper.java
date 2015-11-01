@@ -10,7 +10,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class MoviesDbHelper extends SQLiteOpenHelper {
 
 
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
     static final String DATABASE_NAME = "movies.db";
 
@@ -37,7 +37,8 @@ public class MoviesDbHelper extends SQLiteOpenHelper {
                 MovieContract.COLUMN_RATING + " REAL NOT NULL, " +
                 MovieContract.COLUMN_RELEASE_DATE + " INTEGER NOT NULL, " +
                 //in case I'll need it for stage 2
-                MovieContract.COLUMN_IMDB_ID + " INTEGER)";
+                MovieContract.COLUMN_IMDB_ID + " INTEGER, "+
+                MovieContract.COLUMN_VOTERS+ " INTEGER NOT NULL)";
         db.execSQL(CREATE_MOVIE_TABLE);
 
     }

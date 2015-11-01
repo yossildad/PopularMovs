@@ -5,72 +5,58 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.GridView;
 
 public class MainActivity extends AppCompatActivity {
-
+    //saving the sort type in order to know when to reload the data on onResume
     public String mSort = null;
 
     @Override
     protected void onResume() {
-        Log.v("POPMOVS","onResume start");
         super.onResume();
+
         MainActivityFragment fragment = (MainActivityFragment)getSupportFragmentManager().findFragmentById(R.id.main_fragment);
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
-        if (!mSort.equals(sp.getString(getResources().getString(R.string.preference_file_key),getResources().getString(R.string.sotr_popular))))
-        Log.v("POPMOVS","onResume before");
-            fragment.LoadPage();
-            fragment.mPage = 1;
-        Log.v("POPMOVS", "onResume after");
-    }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        Log.v("POPMOVS","onStart");
+        //if the sorting has changed then the main screen parameters should be reset
+        if (!mSort.equals(sp.getString(getResources().getString(R.string.preference_file_key),""))) {
 
-    }
+            mSort = sp.getString(getResources().getString(R.string.preference_file_key),getResources().getString(R.string.sotr_popular));
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-        //clearing the cache when the app is destroyed
-        getContentResolver().delete(MovieContract.CONTENT_URI, null, null);
-    }
+            //going back to the first page and loading the data
+            fragment.LoadPage(mSort,"1");
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-
+            //setting the scroll back to the start of the grid
+            fragment.mScrollPosition = GridView.INVALID_POSITION;
+        }
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
-        mSort = sp.getString(getResources().getString(R.string.preference_file_key),getResources().getString(R.string.sotr_popular));
+        //setting the sort type
+        if (mSort == null)
+        {
+            SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+            mSort = sp.getString(getResources().getString(R.string.preference_file_key),getResources().getString(R.string.sotr_popular));
+        }
     }
 
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
+       int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+       if (id == R.id.action_settings) {
             startActivity(new Intent(this,SettingsActivity.class));
             return true;
         }

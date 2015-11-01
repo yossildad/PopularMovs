@@ -28,7 +28,7 @@ public class MovieProvider extends ContentProvider {
         final UriMatcher matcher = new UriMatcher(0);
 
         matcher.addURI(MovieContract.CONTENT_AUTHORITY,MovieContract.MOVIES_PATH,MOVIES_LIST);
-        matcher.addURI(MovieContract.CONTENT_AUTHORITY,MovieContract.MOVIES_PATH + "/*/#",MOVIE);
+        matcher.addURI(MovieContract.CONTENT_AUTHORITY,MovieContract.MOVIES_PATH + "/#",MOVIE);
         return matcher;
     }
 
@@ -69,7 +69,6 @@ public class MovieProvider extends ContentProvider {
         // Because a null deletes all rows
         if (rowsNum != 0) {
             getContext().getContentResolver().notifyChange(uri, null);}
-        Log.v("POPMOVS", "deleted. rowsNum: "+ rowsNum);
         return rowsNum;
 
 
@@ -92,8 +91,8 @@ public class MovieProvider extends ContentProvider {
              case MOVIE:{
                  MoviesDbHelper moviesDbHelper = new MoviesDbHelper(getContext());
                  SQLiteDatabase db = moviesDbHelper.getReadableDatabase();
-                 c = db.query(MovieContract.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
-                 Log.v("POPMOVS", "query Movie. c length is: " + c.getCount());
+                 String id = uri.getLastPathSegment();
+                 c = db.query(MovieContract.TABLE_NAME, projection, MovieContract._ID + " = ? ", new String[]{id}, null, null, sortOrder);
                  break;
              }
              //for the home screen in which
@@ -101,7 +100,6 @@ public class MovieProvider extends ContentProvider {
                  MoviesDbHelper moviesDbHelper = new MoviesDbHelper(getContext());
                  SQLiteDatabase db = moviesDbHelper.getReadableDatabase();
                  c = db.query(MovieContract.TABLE_NAME,projection,selection,selectionArgs,null,null,sortOrder);
-                 Log.v("POPMOVS", "query Movie List. c length is: " + c.getCount());
                  break;
              }
              default:
@@ -113,6 +111,7 @@ public class MovieProvider extends ContentProvider {
         return c;
     }
 
+    //not used since I'm using the db as cache and doing only bulk insert
     @Override
     public Uri insert(Uri uri, ContentValues values) {
         long id;
@@ -126,21 +125,20 @@ public class MovieProvider extends ContentProvider {
             throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
         getContext().getContentResolver().notifyChange(uri,null);
-        Log.v("POPMOVS", "Insert NotifyChange. uri is: "+ uri.toString()+ " Inserted uri is: " + uriInserted.toString());
         return uri;
     }
 
     @Override
     public int bulkInsert(Uri uri, ContentValues[] values) {
-     //   super.bulkInsert(uri, values);
+
         if (matcher.match(uri) == MOVIES_LIST && values != null) {
             SQLiteDatabase db = moviesDbHelper.getWritableDatabase();
             db.beginTransaction();
-            Log.v("POPMOVS", "BulkInsert");
+
             try {
                 for (ContentValues cv : values) {
                     long newId = db.insertOrThrow(MovieContract.TABLE_NAME, null, cv);
-                    Log.v("POPMOVS", "BulkInsert for loop. newId is: " + newId);
+
                     if (newId == -1)
                         throw new SQLException("Failed to insert row into " + uri);
                 }
@@ -153,7 +151,7 @@ public class MovieProvider extends ContentProvider {
                 db.setTransactionSuccessful();
                 db.endTransaction();
                 getContext().getContentResolver().notifyChange(uri, null);
-                Log.v("POPMOVS", "bulkinsert finaly. value of uri: " + uri.toString());
+
             }
         }
             else

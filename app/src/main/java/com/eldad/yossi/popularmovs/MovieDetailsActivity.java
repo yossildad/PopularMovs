@@ -1,39 +1,29 @@
 package com.eldad.yossi.popularmovs;
 
-import android.app.LoaderManager;
-import android.content.Context;
-import android.content.Loader;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.util.AttributeSet;
-import android.view.View;
+import android.support.v4.app.FragmentActivity;
 
 /**
  * Created by Tamar on 26/10/2015.
  */
-public class MovieDetailsActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks {
-    @Override
-    public View onCreateView(View parent, String name, Context context, AttributeSet attrs) {
-        return super.onCreateView(parent, name, context, attrs);
-    }
+public class MovieDetailsActivity extends FragmentActivity {
+
+    public MovieDetailsActivity(){}
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-    }
+        setContentView(R.layout.movie_detail_activity);
 
-    @Override
-    public Loader onCreateLoader(int id, Bundle args) {
-        return null;
-    }
+        //sending the uri to the fragment
+        if (savedInstanceState == null) {
+            Bundle arguments = new Bundle();
+            arguments.putString(getResources().getString(R.string.detail_uri_arg), getIntent().getData().toString());
 
-    @Override
-    public void onLoaderReset(Loader loader) {
+            MovieDetailsFragment fragment = new MovieDetailsFragment();
+            fragment.setArguments(arguments);
 
-    }
-
-    @Override
-    public void onLoadFinished(Loader loader, Object data) {
-
+            getSupportFragmentManager().beginTransaction().add(R.id.movies_detail_container,fragment).commit();
+        }
     }
 }

@@ -16,6 +16,7 @@ public class MovieContract {
     public static final int COL_RATING = 4;
     public static final int COL_RELEASE = 5;
     public static final int COL_IMDBID = 6;
+    public static final int COL_VOTERS = 7;
 
 
     //The authority of this application and no of the TMDB service
@@ -47,6 +48,7 @@ public class MovieContract {
     public static String COLUMN_RELEASE_DATE = "release";
     public static String COLUMN_GENRE = "genere";
     public static String COLUMN_IMDB_ID = "imdb_id";
+    public static String COLUMN_VOTERS = "voters_num";
 
 
 

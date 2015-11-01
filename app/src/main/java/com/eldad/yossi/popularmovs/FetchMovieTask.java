@@ -3,6 +3,7 @@ package com.eldad.yossi.popularmovs;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
@@ -132,7 +133,6 @@ public FetchMovieTask(Context context, MoviesAdapter adapter){
                     return 0;
             }
             else
-                Log.v("POPMOVS","doinbck. uri data is null");
                 return -1;
         }
         catch (IOException e){
@@ -153,10 +153,17 @@ public FetchMovieTask(Context context, MoviesAdapter adapter){
         String JO_RELEASE = "release_date";
         String JO_TOTAL_PAGES = "total_pages";
         String JO_TOTAL_RESULTS = "total_results";
+        String JO_VOTERS = "vote_count";
 
         ContentValues[] cvArr = null;
         JSONObject movJson = null;
-        
+
+        //if there is no internet connection then return null
+        ConnectivityManager cm = (ConnectivityManager) mContext.getSystemService(mContext.CONNECTIVITY_SERVICE);
+        if (cm.getActiveNetworkInfo() == null)
+        {
+            return null;
+        }
         try {
             JSONObject jsonObject = new JSONObject(jsonString);
 
@@ -186,16 +193,14 @@ public FetchMovieTask(Context context, MoviesAdapter adapter){
                 //saving the date in julian since there is no date in Sqlite
                 int julDate = Utility.toJulian(movJson.getString(JO_RELEASE));
                 cv.put(MovieContract.COLUMN_RELEASE_DATE, Integer.toString(julDate));
+                cv.put(MovieContract.COLUMN_VOTERS, movJson.getString(JO_VOTERS));
 
                 cvArr[i] = cv;
                 }
         }
             catch (JSONException e) {
-
-                //!!!!! change the TAG to a more elegant value
-                Log.e("FetchTask","could not parse TMDB JSON: " + movJson.toString());
-                Log.e("FetchTask","the exception is: "+ e.toString());
-                }
+                return null;
+            }
         return cvArr;
 
     }
@@ -218,74 +223,15 @@ public FetchMovieTask(Context context, MoviesAdapter adapter){
             return  numInserted;
         }
 
+        //if this is the first page then the db should be emptied since I can't clear the cache on onStop (happens too "often") or on onDestroy (happens too rare)
         if (lcPage == 1){
             cr.delete(MovieContract.CONTENT_URI,null,null);
-                numInserted = cr.bulkInsert(MovieContract.CONTENT_URI,cv);
         }
-        else
-        {
-            numInserted = cr.bulkInsert(MovieContract.CONTENT_URI,cv);
-        }
+
+        //inserting the results to the db and notifying the loaders
+        numInserted = cr.bulkInsert(MovieContract.CONTENT_URI,cv);
         cr.notifyChange(MovieContract.CONTENT_URI,null);
         return numInserted;
-//
-//        //get the current data from the db of the relevant page
-//        Cursor c = cr.query(MovieContract.CONTENT_URI, null, MovieContract._ID + " BETWEEN ? AND ? " ,
-//                new String[]{Integer.toString(getLowerRownumOfPage(lcPage)), Integer.toString(getUpperRownumOfPage(lcPage))}, null);
-//
-//
-//
-//        //if the db is empty or it is a new page insert the new data from TMDB
-//        if (!c.moveToFirst()){
-//            numInserted = cr.bulkInsert(MovieContract.CONTENT_URI,cv);
-//        }
-//
-//        else if (c.getCount() !=cv.length){
-//            cr.delete(MovieContract.CONTENT_URI,null,null);
-//            numInserted = cr.bulkInsert(MovieContract.CONTENT_URI,cv);
-//        }
-//        //if the DB is not empty compare to the data from TMDB
-//        else
-//        {
-//            int i = 0;
-//            boolean isDiff = false;
-//            do {
-//                //making sure that there will be no out of array index exception
-//                if (i<cv.length) {
-//                    //checking all the fields and not just IMDBID in case that other field need to be update
-//                    if (!c.getString(MovieContract.COL_TITLE).equals(cv[i].get(MovieContract.COLUMN_TITLE)) ||
-//                            !c.getString(MovieContract.COL_OVERVIEW).equals(cv[i].get(MovieContract.COLUMN_OVERVIEW)) ||
-//                            !c.getString(MovieContract.COL_POSTER).equals(cv[i].get(MovieContract.COLUMN_POSTER)) ||
-//                            c.getDouble(MovieContract.COL_RATING) != (Double) (cv[i].get(MovieContract.COLUMN_RATING)) ||
-//                            !c.getString(MovieContract.COL_RELEASE).equals(cv[i].get(MovieContract.COLUMN_RELEASE_DATE))) {
-//                        isDiff = true;
-//                    }
-//                    i += 1;
-//                }
-//                //if i >= cv.length it means that there is more rows in the DB and the data should
-//                else if (i>cv.length)
-//                    isDiff = true;
-//            }
-//            while (c.moveToNext());
-//            // if the data is not identical the DB data will be deleted and the TMDB data will be inserted
-//            //it can be optimized by using update if only one row was updated (rating changed for example)
-//            if (isDiff == true)
-//            {
-//                cr.delete(MovieContract.CONTENT_URI,null,null);
-//                numInserted = cr.bulkInsert(MovieContract.CONTENT_URI,cv);
-//            }
-//        }
-//
-//        if (numInserted > 0){
-//            cr.notifyChange(MovieContract.CONTENT_URI,null);
-//
-//        }
-    }
-    private int getUpperRownumOfPage(Integer page){
-        return page * (mTotalResults / mTotalPages) + 1;
-    }
 
-    private int getLowerRownumOfPage(Integer page){
-        return ((page -1) * (mTotalResults / mTotalPages));
     }
 }
