@@ -2,6 +2,7 @@ package com.eldad.yossi.popularmovs;
 
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.util.Log;
 
 /**
  * Created by Tamar on 26/10/2015.
@@ -13,6 +14,7 @@ public class MovieDetailsActivity extends FragmentActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.v("POPS2", "Detail Fragment onCreate");
         setContentView(R.layout.movie_detail_activity);
 
         //sending the uri to the fragment

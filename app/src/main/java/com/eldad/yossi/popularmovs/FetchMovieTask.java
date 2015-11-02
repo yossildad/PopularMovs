@@ -52,7 +52,7 @@ public FetchMovieTask(Context context, MoviesAdapter adapter){
     @Override
     protected Integer doInBackground(String... params) {
 
-
+        Log.v("POPS2", "FetchTask doInBackground");
         // base url for getting movies sorted by user rating
         final String RATED_URL = "https://api.themoviedb.org/3/movie/top_rated";
 
@@ -71,7 +71,7 @@ public FetchMovieTask(Context context, MoviesAdapter adapter){
         //delete previous data since the stop and destroy methods are controled by the OS
         String page = params[1].toString();
         if (page == "1"){
-            mContext.getContentResolver().delete(MovieContract.CONTENT_URI,null,null);
+            mContext.getContentResolver().delete(MovieContract.MOVIE_CONTENT_URI,null,null);
         }
 
 
@@ -126,8 +126,7 @@ public FetchMovieTask(Context context, MoviesAdapter adapter){
                 if (buffer.length() != 0)
                 {
                    //if everything was ok the new lines will be replace to old ones and the adapter will be notified by the content resolver
-                      //mContext.getContentResolver().bulkInsert(MovieContract.CONTENT_URI,getMovieDetailFromJson(buffer.toString()));
-                    return UpdateSqliteCache(getMovieDetailFromJson(buffer.toString()), params[1].toString());
+                                          return UpdateSqliteCache(getMovieDetailFromJson(buffer.toString()), params[1].toString());
                 }
                 else
                     return 0;
@@ -225,12 +224,12 @@ public FetchMovieTask(Context context, MoviesAdapter adapter){
 
         //if this is the first page then the db should be emptied since I can't clear the cache on onStop (happens too "often") or on onDestroy (happens too rare)
         if (lcPage == 1){
-            cr.delete(MovieContract.CONTENT_URI,null,null);
+            cr.delete(MovieContract.MOVIE_CONTENT_URI,null,null);
         }
 
         //inserting the results to the db and notifying the loaders
-        numInserted = cr.bulkInsert(MovieContract.CONTENT_URI,cv);
-        cr.notifyChange(MovieContract.CONTENT_URI,null);
+        numInserted = cr.bulkInsert(MovieContract.MOVIE_CONTENT_URI,cv);
+        cr.notifyChange(MovieContract.MOVIE_CONTENT_URI,null);
         return numInserted;
 
     }

@@ -10,7 +10,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class MoviesDbHelper extends SQLiteOpenHelper {
 
 
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3;
 
     static final String DATABASE_NAME = "movies.db";
 
@@ -22,7 +22,7 @@ public class MoviesDbHelper extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 
         //the movie table is only for cache so in case of upgrade it should be droped and recreated and repopulated
-        db.execSQL("DROP TABLE IF EXISTS " + MovieContract.TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + MovieContract.MOVIE_TABLE_NAME);
         onCreate(db);
     }
 
@@ -30,7 +30,7 @@ public class MoviesDbHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
 
         //The Create Table statement for the movie table
-        final String CREATE_MOVIE_TABLE = "CREATE TABLE " + MovieContract.TABLE_NAME + " (" + MovieContract._ID + " INTEGER PRIMARY KEY, " +
+        final String CREATE_MOVIE_TABLE = "CREATE TABLE " + MovieContract.MOVIE_TABLE_NAME + " (" + MovieContract._ID + " INTEGER PRIMARY KEY, " +
                 MovieContract.COLUMN_TITLE + " TEXT NOT NULL, " +
                 MovieContract.COLUMN_OVERVIEW + " TEXT NOT NULL, " +
                 MovieContract.COLUMN_POSTER + " TEXT NOT NULL, " +
@@ -40,6 +40,18 @@ public class MoviesDbHelper extends SQLiteOpenHelper {
                 MovieContract.COLUMN_IMDB_ID + " INTEGER, "+
                 MovieContract.COLUMN_VOTERS+ " INTEGER NOT NULL)";
         db.execSQL(CREATE_MOVIE_TABLE);
+
+        final String CREATE_FAVORIT_TABLE = "CREATE TABLE " + MovieContract.FAVORIT_TABLE_NAME + " (" + MovieContract._ID + " INTEGER PRIMARY KEY, " +
+                MovieContract.COLUMN_TITLE + " TEXT NOT NULL, " +
+                MovieContract.COLUMN_OVERVIEW + " TEXT NOT NULL, " +
+                MovieContract.COLUMN_POSTER + " TEXT NOT NULL, " +
+                MovieContract.COLUMN_RATING + " REAL NOT NULL, " +
+                MovieContract.COLUMN_RELEASE_DATE + " INTEGER NOT NULL, " +
+                //in case I'll need it for stage 2
+                MovieContract.COLUMN_IMDB_ID + " INTEGER, "+
+                MovieContract.COLUMN_VOTERS+ " INTEGER NOT NULL)";
+        db.execSQL(CREATE_FAVORIT_TABLE);
+
 
     }
 }

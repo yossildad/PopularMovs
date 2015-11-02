@@ -1,5 +1,6 @@
 package com.eldad.yossi.popularmovs;
 
+import android.support.v4.app.Fragment;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -19,7 +20,8 @@ import com.squareup.picasso.Picasso;
 /**
  * Created by Tamar on 26/10/2015.
  */
-public class MovieDetailsFragment extends android.support.v4.app.Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+//public class MovieDetailsFragment extends android.support.v4.app.Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class MovieDetailsFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
     private MovieDetailHolder holder;
     //the projection for the Loaders
@@ -41,12 +43,14 @@ public class MovieDetailsFragment extends android.support.v4.app.Fragment implem
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(false);
+        Log.v("POPS2", "Detail Fragment onCreate");
     }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         Bundle args = getArguments();
+        Log.v("POPS2", "Detail Fragment onCreateView");
         if (args != null) {
             mUri = Uri.parse(args.getString(getResources().getString(R.string.detail_uri_arg)));
         }

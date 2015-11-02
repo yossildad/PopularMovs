@@ -37,7 +37,6 @@ public class MoviesAdapter extends CursorAdapter {
     public void bindView(View view, Context context, Cursor cursor) {
         ViewHolder viewHolder = new ViewHolder(view);
         String decodeUrl = null;
-
         ImageView imageView = viewHolder.imageView;
         imageView.setAdjustViewBounds(true);
 
