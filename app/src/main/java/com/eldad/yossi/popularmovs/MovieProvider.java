@@ -28,12 +28,17 @@ public class MovieProvider extends ContentProvider {
         final UriMatcher matcher = new UriMatcher(0);
 
         matcher.addURI(MovieContract.CONTENT_AUTHORITY,MovieContract.MOVIES_PATH,MOVIES_LIST);
-        matcher.addURI(MovieContract.CONTENT_AUTHORITY,MovieContract.MOVIES_PATH + "/*/#",MOVIE);
+        matcher.addURI(MovieContract.CONTENT_AUTHORITY,MovieContract.MOVIES_PATH + "/#",MOVIE);
+        matcher.addURI(MovieContract.CONTENT_AUTHORITY,MovieContract.FAVORITS_PATH, FAVORITES_LIST);
+        matcher.addURI(MovieContract.CONTENT_AUTHORITY,MovieContract.FAVORITS_PATH + "/#",FAVORITE);
         return matcher;
     }
 
     static final int MOVIES_LIST = 100;
     static final int MOVIE = 101;
+    static final int FAVORITES_LIST = 200;
+    static final int FAVORITE = 201;
+
 
     @Override
     public String getType(Uri uri) {
@@ -44,6 +49,10 @@ public class MovieProvider extends ContentProvider {
             case MOVIES_LIST:
                 return MovieContract.CONTENT_TYPE;
             case MOVIE:
+                return MovieContract.CONTENT_ITEM_TYPE;
+            case FAVORITES_LIST:
+                return MovieContract.CONTENT_TYPE;
+            case FAVORITE:
                 return MovieContract.CONTENT_ITEM_TYPE;
             default: throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -59,17 +68,29 @@ public class MovieProvider extends ContentProvider {
         moviesDbHelper = new MoviesDbHelper(getContext());
         final SQLiteDatabase db = moviesDbHelper.getWritableDatabase();
 
-        //making sure that the uri is ok
-        if (matcher.match(uri) == MOVIES_LIST) {
-            rowsNum = db.delete(MovieContract.TABLE_NAME, selection, selectionArgs);
-        }
-        else{
+        //matching the uri
+        switch (matcher.match(uri)) {
+            case MOVIES_LIST: {
+                //delete all entries in movie table (clear cache
+                rowsNum = db.delete(MovieContract.MOVIE_TABLE_NAME, selection, selectionArgs);
+                break;
+            }
+            case FAVORITES_LIST:{
+                rowsNum = db.delete(MovieContract.FAVORIT_TABLE_NAME, selection, selectionArgs);
+                break;
+            }
+            //not sure if this case will be used
+            case FAVORITE:{
+                rowsNum = db.delete(MovieContract.FAVORIT_TABLE_NAME, selection, selectionArgs);
+                break;
+            }
+            default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
-        // Because a null deletes all rows
+
+         // Because a null deletes all rows
         if (rowsNum != 0) {
             getContext().getContentResolver().notifyChange(uri, null);}
-        db.close();
         return rowsNum;
 
 
@@ -85,6 +106,8 @@ public class MovieProvider extends ContentProvider {
     @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
         Cursor c = null;
+        if (uri != null){
+
 
          switch (matcher.match(uri))
          {
@@ -92,53 +115,98 @@ public class MovieProvider extends ContentProvider {
              case MOVIE:{
                  MoviesDbHelper moviesDbHelper = new MoviesDbHelper(getContext());
                  SQLiteDatabase db = moviesDbHelper.getReadableDatabase();
-                 c = db.query(MovieContract.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
-                 db.close();
+                 String id = uri.getLastPathSegment();
+                 c = db.query(MovieContract.MOVIE_TABLE_NAME, projection, MovieContract._ID + " = ? ", new String[]{id}, null, null, sortOrder);
+                 Log.v("POP2", "Query MOVIE");
                  break;
              }
              //for the home screen in which
              case MOVIES_LIST:{
                  MoviesDbHelper moviesDbHelper = new MoviesDbHelper(getContext());
                  SQLiteDatabase db = moviesDbHelper.getReadableDatabase();
-                 c = db.query(MovieContract.TABLE_NAME,projection,selection,selectionArgs,null,null,sortOrder);
-                 db.close();
+                 c = db.query(MovieContract.MOVIE_TABLE_NAME,projection,selection,selectionArgs,null,null,sortOrder);
+                 Log.v("POP2", "Query MOVIE LIST");
                  break;
              }
+
+             case FAVORITE: {
+                 MoviesDbHelper moviesDbHelper = new MoviesDbHelper(getContext());
+                 SQLiteDatabase db = moviesDbHelper.getReadableDatabase();
+                 String id = uri.getLastPathSegment();
+                 c = db.query(MovieContract.FAVORIT_TABLE_NAME, projection, MovieContract._ID + " = ? ", new String[]{id}, null, null, sortOrder);
+                 Log.v("POP2", "Query Favorite");
+                 break;
+             }
+             case FAVORITES_LIST:{
+                 MoviesDbHelper moviesDbHelper = new MoviesDbHelper(getContext());
+                 SQLiteDatabase db = moviesDbHelper.getReadableDatabase();
+                 c = db.query(MovieContract.FAVORIT_TABLE_NAME,projection,selection,selectionArgs,null,null,sortOrder);
+                 Log.v("POP2", "Query FAVORITE LIST. C.length is: " + c.getCount());
+                 break;
+             }
+
              default:
              {
                  throw new UnsupportedOperationException("Unknown uri: " + uri);
              }
          }
+        if (c != null)
+        c.setNotificationUri(getContext().getContentResolver(), uri);
+
         return c;
+        }
+        else return null;
     }
 
+    //will be used mainly for inserting rows to favorite movie table
     @Override
     public Uri insert(Uri uri, ContentValues values) {
         long id;
         Uri uriInserted = null;
-        if (matcher.match(uri) == MOVIES_LIST){
-            SQLiteDatabase db = moviesDbHelper.getWritableDatabase();
-            id = db.insert(MovieContract.TABLE_NAME,null,values);
-            uriInserted = ContentUris.withAppendedId(MovieContract.BASE_CONTENT_URI, id);
-            db.close();
+        switch (matcher.match(uri)){
+            case MOVIES_LIST:{
+                SQLiteDatabase db = moviesDbHelper.getWritableDatabase();
+                id = db.insert(MovieContract.MOVIE_TABLE_NAME, null, values);
+                uriInserted = ContentUris.withAppendedId(MovieContract.MOVIE_CONTENT_URI, id);
+                break;
+            }
+            case FAVORITES_LIST:
+                SQLiteDatabase db = moviesDbHelper.getWritableDatabase();
+                id = db.insert(MovieContract.FAVORIT_TABLE_NAME, null, values);
+                uriInserted = ContentUris.withAppendedId(MovieContract.FAVORIT_CONTENT_URI, id);
+                break;
+            default:
+                throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
-        else{
-            throw new UnsupportedOperationException("Unknown uri: " + uri);
-        }
-        getContext().getContentResolver().notifyChange(uriInserted,null);
 
+        getContext().getContentResolver().notifyChange(uri,null);
         return uriInserted;
     }
 
     @Override
     public int bulkInsert(Uri uri, ContentValues[] values) {
-        super.bulkInsert(uri, values);
-        if (matcher.match(uri) == MOVIES_LIST && values != null) {
+
+        String tableName;
+        //matching the uri and deciding where to insert the data
+        if (matcher.match(uri) == MOVIES_LIST)
+        {
+            tableName = MovieContract.MOVIE_TABLE_NAME;
+        }
+        else if (matcher.match(uri) == FAVORITES_LIST)
+        {
+            tableName = MovieContract.FAVORIT_TABLE_NAME;
+        }
+        else
+            tableName = null;
+
+        if (tableName != null && values != null) {
             SQLiteDatabase db = moviesDbHelper.getWritableDatabase();
             db.beginTransaction();
+
             try {
                 for (ContentValues cv : values) {
-                    long newId = db.insertOrThrow(MovieContract.TABLE_NAME, null, cv);
+                    long newId = db.insertOrThrow(tableName, null, cv);
+
                     if (newId == -1)
                         throw new SQLException("Failed to insert row into " + uri);
                 }
@@ -147,13 +215,11 @@ public class MovieProvider extends ContentProvider {
             catch (SQLException e)
             {
                 Log.e("MovieProvider","failed to insert row in bulk insert. the uri is: " + uri.toString());
-            }
-
-            finally {
-                getContext().getContentResolver().notifyChange(uri,null);
+            } finally {
                 db.setTransactionSuccessful();
                 db.endTransaction();
-                db.close();
+                getContext().getContentResolver().notifyChange(uri, null);
+
             }
         }
             else
@@ -169,15 +235,25 @@ public class MovieProvider extends ContentProvider {
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
         int id;
         Uri uriInserted = null;
+        String tableName;
+        Uri destUri;
         if (matcher.match(uri) == MOVIE){
-            SQLiteDatabase db = moviesDbHelper.getWritableDatabase();
-            id = db.update(MovieContract.TABLE_NAME,values,selection,selectionArgs);
-            uriInserted = ContentUris.withAppendedId(MovieContract.BASE_CONTENT_URI, id);
-            db.close();
+           tableName = MovieContract.MOVIE_TABLE_NAME;
+            destUri = MovieContract.MOVIE_CONTENT_URI;
+        }
+        else if( matcher.match(uri) == FAVORITE){
+            tableName = MovieContract.FAVORIT_TABLE_NAME;
+            destUri = MovieContract.FAVORIT_CONTENT_URI;
         }
         else{
             throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
+
+        SQLiteDatabase db = moviesDbHelper.getWritableDatabase();
+        id = db.update(tableName,values,selection,selectionArgs);
+        uriInserted = ContentUris.withAppendedId(destUri, id);
+        db.close();
+
         getContext().getContentResolver().notifyChange(uriInserted,null);
         return id;
     }

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="popmov_headlines">#6600FF</color>
+    <color name="popmov_headlines_text">#ffffff</color>
+    <color name="popmov_text">#000000</color>
+</resources>

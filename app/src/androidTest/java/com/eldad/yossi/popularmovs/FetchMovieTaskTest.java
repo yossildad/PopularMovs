@@ -8,12 +8,12 @@ import android.test.AndroidTestCase;
 public class FetchMovieTaskTest extends AndroidTestCase {
 
 
-    public void testCreateImageURL()
-    {
-        FetchMovieTask fetchMovieTask = new FetchMovieTask(mContext);
-        String url = fetchMovieTask.CreatePosterUrl("a.jpg");
-
-        assertEquals("No match","http://image.tmdb.org/t/p/w185/a.jpg",url );
-
-    }
+//    public void testCreateImageURL()
+//    {
+//        FetchMovieTask fetchMovieTask = new FetchMovieTask(mContext);
+//        String url = fetchMovieTask.CreatePosterUrl("a.jpg");
+//
+//        assertEquals("No match","http://image.tmdb.org/t/p/w185/a.jpg",url );
+//
+//    }
 }
