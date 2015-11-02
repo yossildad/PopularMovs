@@ -34,7 +34,10 @@ public class FetchMovieTask extends AsyncTask<String,Integer,Integer> {
 
 
 public FetchMovieTask(Context context, MoviesAdapter adapter){
-
+    boolean isNull = false;
+    if (mContext == null)
+        isNull = true;
+    Log.v("POPS2", "Task contructor. mContent is null? - " + isNull);
     mContext = context;
     mAdapter = adapter;
     }
@@ -60,7 +63,7 @@ public FetchMovieTask(Context context, MoviesAdapter adapter){
         final String POPULAR_URL = "https://api.themoviedb.org/3/movie/popular";
 
         //a key required for TMDB authentication
-        final String API_KEY = "a26ea2689e48792c72d2cd6dc77bb996";
+        final String API_KEY = "";
 
 
         //if there are no params the sorting order and page cannot be decided
