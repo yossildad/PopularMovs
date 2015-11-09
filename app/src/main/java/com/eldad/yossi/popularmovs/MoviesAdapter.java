@@ -30,16 +30,17 @@ public class MoviesAdapter extends CursorAdapter {
 
     @Override
     public View newView(Context context, Cursor cursor, ViewGroup parent) {
+        Log.v("POP4", "newView");
         return LayoutInflater.from(context).inflate(R.layout.grid_item_mov,parent,false);
     }
 
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
+        Log.v("PMS", "bindView");
         ViewHolder viewHolder = new ViewHolder(view);
         String decodeUrl = null;
         ImageView imageView = viewHolder.imageView;
         imageView.setAdjustViewBounds(true);
-
         try {
             decodeUrl = URLDecoder.decode(cursor.getString(COL_POSTER), "UTF-8");
         }

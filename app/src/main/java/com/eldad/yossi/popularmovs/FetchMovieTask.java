@@ -28,18 +28,18 @@ public class FetchMovieTask extends AsyncTask<String,Integer,Integer> {
 
 
     private Context mContext;
-    private MoviesAdapter mAdapter;
+   // private MoviesAdapter mAdapter;
     private int mTotalPages;
     private int mTotalResults;
 
 
-public FetchMovieTask(Context context, MoviesAdapter adapter){
+public FetchMovieTask(Context context){
     boolean isNull = false;
     if (mContext == null)
         isNull = true;
     Log.v("POPS2", "Task contructor. mContent is null? - " + isNull);
     mContext = context;
-    mAdapter = adapter;
+   // mAdapter = adapter;
     }
 
     @Override
@@ -48,14 +48,14 @@ public FetchMovieTask(Context context, MoviesAdapter adapter){
 //        if (o > 0){
 //          mFragment.onProcessFinish();
 //        }
-//        Log.v("POPMOVS", "OnPostExec. o is: "+o.toString());
+        Log.v("PMS", "OnPostExec");
 
     }
 
     @Override
     protected Integer doInBackground(String... params) {
 
-        Log.v("POPS2", "FetchTask doInBackground");
+        Log.v("PMS", "FetchTask doInBackground");
         // base url for getting movies sorted by user rating
         final String RATED_URL = "https://api.themoviedb.org/3/movie/top_rated";
 
@@ -63,12 +63,12 @@ public FetchMovieTask(Context context, MoviesAdapter adapter){
         final String POPULAR_URL = "https://api.themoviedb.org/3/movie/popular";
 
         //a key required for TMDB authentication
-        final String API_KEY = "";
+        final String API_KEY = mContext.getResources().getString(R.string.api_key);
 
 
         //if there are no params the sorting order and page cannot be decided
         if (params.length == 0) {
-            Log.v("POPMOVS", "doinbck. param length is 0");
+            Log.v("PMS", "doinbck. param length is 0");
             return -1;
         }
         //delete previous data since the stop and destroy methods are controled by the OS
@@ -78,7 +78,7 @@ public FetchMovieTask(Context context, MoviesAdapter adapter){
         }
 
 
-                //defined outside the try in order to close them a the finally
+        //defined outside the try in order to close them a the finally
         HttpsURLConnection httpsURLConnection = null;
         BufferedReader reader = null;
 
@@ -87,7 +87,7 @@ public FetchMovieTask(Context context, MoviesAdapter adapter){
 
         try {
             Uri uriData = null;
-            Log.v("POPMOVS", "doinback. sortType is: " + sortType + "and resource is: "+ mContext.getResources().getString(R.string.sotr_popular));
+            Log.v("PMS", "doinback. sortType is: " + sortType + " and resource is: "+ mContext.getResources().getString(R.string.sotr_popular));
             if (mContext.getResources().getString(R.string.sort_rated).equals(sortType)) {
 
                 //building the uri in case the requested order is by user rating
@@ -129,15 +129,20 @@ public FetchMovieTask(Context context, MoviesAdapter adapter){
                 if (buffer.length() != 0)
                 {
                    //if everything was ok the new lines will be replace to old ones and the adapter will be notified by the content resolver
+                    Log.v("PMS", "do in background return value");
                                           return UpdateSqliteCache(getMovieDetailFromJson(buffer.toString()), params[1].toString());
+
                 }
                 else
+                    Log.v("PMS", "do in background return 0");
                     return 0;
             }
             else
+                Log.v("PMS", "do in background return -1");
                 return -1;
         }
         catch (IOException e){
+            Log.v("PMS", "do in background exception");
             return -1;
         }
 
@@ -156,6 +161,7 @@ public FetchMovieTask(Context context, MoviesAdapter adapter){
         String JO_TOTAL_PAGES = "total_pages";
         String JO_TOTAL_RESULTS = "total_results";
         String JO_VOTERS = "vote_count";
+        String JO_IMDBID = "id";
 
         ContentValues[] cvArr = null;
         JSONObject movJson = null;
@@ -196,6 +202,8 @@ public FetchMovieTask(Context context, MoviesAdapter adapter){
                 int julDate = Utility.toJulian(movJson.getString(JO_RELEASE));
                 cv.put(MovieContract.COLUMN_RELEASE_DATE, Integer.toString(julDate));
                 cv.put(MovieContract.COLUMN_VOTERS, movJson.getString(JO_VOTERS));
+                cv.put(MovieContract.COLUMN_IMDB_ID, movJson.getString(JO_IMDBID));
+                Log.v("POPS2", "imdb in JSON is: " + movJson.getString(JO_IMDBID));
 
                 cvArr[i] = cv;
                 }
@@ -227,6 +235,7 @@ public FetchMovieTask(Context context, MoviesAdapter adapter){
 
         //if this is the first page then the db should be emptied since I can't clear the cache on onStop (happens too "often") or on onDestroy (happens too rare)
         if (lcPage == 1){
+            Log.v("POPS3","update sql cache delete");
             cr.delete(MovieContract.MOVIE_CONTENT_URI,null,null);
         }
 

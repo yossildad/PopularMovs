@@ -1,8 +1,8 @@
 package com.eldad.yossi.popularmovs;
 
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
@@ -22,9 +22,16 @@ import android.widget.GridView;
  */
 public class MainActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
+    public interface callback{
+        public void onMovieClicked(Uri movieUri, String imdbId);
+    }
+
     private GridView mMoviesGrid = null;
 
     private MoviesAdapter mMovieAdapter = null;
+
+
+    private Cursor mMoviesCursorData = null;
 
     public int mScrollPosition = GridView.INVALID_POSITION;
 
@@ -36,17 +43,21 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     //the projection of the main screen
     private static final String[] MOVIE_COLUMNS = {
             MovieContract._ID,
-            MovieContract.COLUMN_POSTER
-                };
+            MovieContract.COLUMN_POSTER,
+            MovieContract.COLUMN_IMDB_ID,
+                            };
 
-
-
+    @Override
+    protected void finalize() throws Throwable {
+        super.finalize();
+        mMoviesCursorData.close();
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        Log.v("POPS2","Fragment on Create");
+        Log.v("PMS","Fragment on Create");
     }
 
     public MainActivityFragment() {
@@ -56,7 +67,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     public void onActivityCreated(Bundle savedInstanceState) {
         getLoaderManager().initLoader(0,null,this);
         super.onActivityCreated(savedInstanceState);
-        Log.v("POPS2", "Fragment onActivityCreated");
+        Log.v("PMS", "Fragment onActivityCreated");
     }
 
     @Override
@@ -65,7 +76,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
 
         //getting the prefered sort order. popular is the default is the values was not changed/set by the user
         SharedPreferences shp = PreferenceManager.getDefaultSharedPreferences(getContext());
-        Log.v("POPS2","Fragment onCreateView");
+        Log.v("PMS","Fragment onCreateView");
         mSortOrder = shp.getString(getResources().getString(R.string.preference_file_key), getResources().getString(R.string.sotr_popular));
 
         mMovieAdapter = new MoviesAdapter(getContext(),null,0);
@@ -81,21 +92,23 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
             public void onScrollStateChanged(AbsListView view, int scrollState) {
                     //loading the next page if the user is reaching the end of the list
                     if (totalItems > 0) {
-                        if ((firstVisItem + totaVislItems) / totalItems > 0.6) {
+//                        if ((firstVisItem + totaVislItems) / totalItems > Double.parseDouble(getActivity().getResources().getString(R.string.movies_list_page_percent))) {
+                        if ((firstVisItem + totaVislItems) / totalItems > 0.8) {
                             mPage = mPage + 1;
 
                             LoadPage(mSortOrder, Integer.toString(mPage));
-                            Log.v("POPS2", "Fragment onScrollChanged");
+                            Log.v("PMS", "Fragment onScrollChanged");
                         }
                     }
             }
 
             @Override
             public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-                Log.v("POPS2","Fragment onScroll");
+                Log.v("PMS","Fragment onScroll. first visiable item is: " + firstVisibleItem);
                 firstVisItem = firstVisibleItem;
                 totaVislItems = visibleItemCount;
                 totalItems = totalItemCount;
+
                 if (firstVisibleItem != 0){
                     mScrollPosition = firstVisibleItem;
                 }
@@ -106,10 +119,10 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
         mMoviesGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                //stating the movie details activity
-                Intent intent = new Intent(getActivity(),MovieDetailsActivity.class);
-                intent.setData(MovieContract.MOVIE_CONTENT_URI.buildUpon().appendPath(Long.toString(id)).build());
-                startActivity(intent);
+
+                mMoviesCursorData.moveToPosition(position);
+                //sending the uri to the main activity so it will launch the detail fragment (whether in a new Activity or inside the main activity
+                ((callback)getActivity()).onMovieClicked(MovieContract.MOVIE_CONTENT_URI.buildUpon().appendPath(Long.toString(id)).build(),mMoviesCursorData.getString(2));
 
             }
         });
@@ -129,13 +142,15 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     }
 
     public void LoadPage(String sort, String page){
-        Log.v("POPS2","Fragment LoadPage");
+        Log.v("PMS","Fragment LoadPage sort is: " + sort);
         //if the sorting is by favorits there is no reason to start the AsyncTask.
          if (sort != getActivity().getResources().getString(R.string.sort_favorites)){
                         //initiating AsyncTask to Fetch the data from TMDB and inserting it to the DB
-            FetchMovieTask fetchMovieTask = new FetchMovieTask(getContext(), mMovieAdapter);
+            FetchMovieTask fetchMovieTask = new FetchMovieTask(getContext());
             //using the sort from the shared preferences and the page from saved instance
+             Log.v("PMS","Fragment LoadPage calling execute ");
             fetchMovieTask.execute(sort, page);
+
         }
         mSortOrder = sort;
         getLoaderManager().restartLoader(0, null, this);
@@ -162,17 +177,20 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         String sortOrder = MovieContract._ID + " ASC";
         if (mSortOrder.equals(getActivity().getResources().getString(R.string.sort_favorites))) {
+                Log.v("PMS", "Fragment onCreateLoader sort is favorites");
                 return new CursorLoader(getActivity(), MovieContract.FAVORIT_CONTENT_URI, MOVIE_COLUMNS, null, null, sortOrder);
         }
         else {
+            Log.v("PMS", "Fragment onCreateLoader sort is NOT favorites");
             return new CursorLoader(getActivity(), MovieContract.MOVIE_CONTENT_URI, MOVIE_COLUMNS, null, null, sortOrder);
         }
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        Log.v("PMS", "Fragment onLoadeFinished");
+        mMoviesCursorData = data;
         mMovieAdapter.swapCursor(data);
-
         if (mScrollPosition != GridView.INVALID_POSITION){
             mMoviesGrid.smoothScrollToPosition(mScrollPosition);
         }

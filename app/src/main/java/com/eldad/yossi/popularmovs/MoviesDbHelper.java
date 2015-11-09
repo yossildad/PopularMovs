@@ -10,7 +10,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class MoviesDbHelper extends SQLiteOpenHelper {
 
 
-    private static final int DATABASE_VERSION = 3;
+    private static final int DATABASE_VERSION = 4;
 
     static final String DATABASE_NAME = "movies.db";
 
@@ -23,6 +23,7 @@ public class MoviesDbHelper extends SQLiteOpenHelper {
 
         //the movie table is only for cache so in case of upgrade it should be droped and recreated and repopulated
         db.execSQL("DROP TABLE IF EXISTS " + MovieContract.MOVIE_TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + MovieContract.FAVORIT_TABLE_NAME);
         onCreate(db);
     }
 
@@ -36,7 +37,6 @@ public class MoviesDbHelper extends SQLiteOpenHelper {
                 MovieContract.COLUMN_POSTER + " TEXT NOT NULL, " +
                 MovieContract.COLUMN_RATING + " REAL NOT NULL, " +
                 MovieContract.COLUMN_RELEASE_DATE + " INTEGER NOT NULL, " +
-                //in case I'll need it for stage 2
                 MovieContract.COLUMN_IMDB_ID + " INTEGER, "+
                 MovieContract.COLUMN_VOTERS+ " INTEGER NOT NULL)";
         db.execSQL(CREATE_MOVIE_TABLE);
@@ -47,8 +47,7 @@ public class MoviesDbHelper extends SQLiteOpenHelper {
                 MovieContract.COLUMN_POSTER + " TEXT NOT NULL, " +
                 MovieContract.COLUMN_RATING + " REAL NOT NULL, " +
                 MovieContract.COLUMN_RELEASE_DATE + " INTEGER NOT NULL, " +
-                //in case I'll need it for stage 2
-                MovieContract.COLUMN_IMDB_ID + " INTEGER, "+
+                MovieContract.COLUMN_IMDB_ID + " INTEGER NOT NULL UNIQUE, "+
                 MovieContract.COLUMN_VOTERS+ " INTEGER NOT NULL)";
         db.execSQL(CREATE_FAVORIT_TABLE);
 

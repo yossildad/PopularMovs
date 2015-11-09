@@ -2,19 +2,17 @@ package com.eldad.yossi.popularmovs;
 
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
-import android.util.Log;
 
 /**
  * Created by Tamar on 26/10/2015.
  */
-public class MovieDetailsActivity extends FragmentActivity {
+public class MovieDetailsActivity extends FragmentActivity implements FetchTrailersTask.TrailersCallback, FetchReviewsTask.ReviewsCallback{
 
     public MovieDetailsActivity(){}
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.v("POPS2", "Detail Fragment onCreate");
         setContentView(R.layout.movie_detail_activity);
 
         //sending the uri to the fragment
@@ -26,6 +24,18 @@ public class MovieDetailsActivity extends FragmentActivity {
             fragment.setArguments(arguments);
 
             getSupportFragmentManager().beginTransaction().add(R.id.movies_detail_container,fragment).commit();
+
+            //start the async tasks for reviews and trailers and add replace the placeholder with the fragments !!!!
         }
+    }
+
+    @Override
+    public void OntrailersLoadFinished(String[] keys) {
+
+    }
+
+    @Override
+    public void OnReviewsLoadFinished(String[] reviews) {
+
     }
 }
