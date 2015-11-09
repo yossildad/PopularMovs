@@ -17,4 +17,6 @@
     <string name="title_activity_details"></string>
     <string name="movies_grid_scroll_pos">GridScrollPos</string>
     <string name="movies_grid_sort_order">SavedSortOrder</string>
+    <string name="movies_list_page_percent">0.6</string>
+    <string name="api_key">a26ea2689e48792c72d2cd6dc77bb996</string>
 </resources>
