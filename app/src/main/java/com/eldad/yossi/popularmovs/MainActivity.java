@@ -15,9 +15,9 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
     //saving the sort type in order to know when to reload the data on onResume
     public String mSort = null;
     private boolean mIsMasterDetail;
-    private String DETAILS_FRAGMENT_TAG = "DFTAG";
-    private String TRAILERS_FRAGMENT_TAG = "TFTAG";
-    private String REVIEWS_FRAGMENT_TAG = "RFTAG";
+    private static final String DETAILS_FRAGMENT_TAG = "DFTAG";
+    private static final String TRAILERS_FRAGMENT_TAG = "TFTAG";
+    private static final String REVIEWS_FRAGMENT_TAG = "RFTAG";
 
 
     @Override
@@ -137,6 +137,7 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
             //stating the movie details activity
             Intent intent = new Intent(this, MovieDetailsActivity.class);
             intent.setData(uri);
+            intent.putExtra(getString(R.string.imdbid_key), imdb);
             startActivity(intent);
         }
     }
