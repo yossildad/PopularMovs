@@ -25,23 +25,22 @@ public class MovieDetailsActivity extends FragmentActivity {
             arguments.putString(getResources().getString(R.string.detail_uri_arg), getIntent().getData().toString());
 
             MovieDetailsFragment fragment = new MovieDetailsFragment();
+
+            FetchTrailersTask ft = new FetchTrailersTask(this,(FetchTrailersTask.TrailersCallback)fragment);
+            ft.execute(imdbId);
+
+
+            FetchReviewsTask fr = new FetchReviewsTask(this,(FetchReviewsTask.ReviewsCallback)fragment);
+            fr.execute(imdbId);
             fragment.setArguments(arguments);
 
             getSupportFragmentManager().beginTransaction().add(R.id.movies_detail_container,fragment,DETAILS_FRAGMENT_TAG).commit();
 
             //start the async tasks for reviews and trailers and add replace the placeholder with the fragments !!!!
         }
-        //creating the trailers fragment
-        TrailersFragment tf = new TrailersFragment();
-        FetchTrailersTask ft = new FetchTrailersTask(this,(FetchTrailersTask.TrailersCallback)tf);
-        ft.execute(imdbId);
-        getSupportFragmentManager().beginTransaction().add(R.id.trailers_container, tf, TRAILERS_FRAGMENT_TAG).commit();
 
-        //creating the reviews fragment
-        ReviewsFragment rf = new ReviewsFragment();
-        FetchReviewsTask fr = new FetchReviewsTask(this,(FetchReviewsTask.ReviewsCallback)rf);
-        fr.execute(imdbId);
-        getSupportFragmentManager().beginTransaction().add(R.id.reviews_container, rf, REVIEWS_FRAGMENT_TAG).commit();
+
+
     }
 
 

@@ -68,7 +68,6 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
             mIsMasterDetail = true;
             if (savedInstanceState == null){
                 getSupportFragmentManager().beginTransaction().replace(R.id.movies_detail_container, new MovieDetailsFragment(), DETAILS_FRAGMENT_TAG).commit();
-                getSupportFragmentManager().beginTransaction().replace(R.id.trailers_container, new TrailersFragment(), TRAILERS_FRAGMENT_TAG).commit();
             }
 
         }
@@ -118,19 +117,15 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
             args.putString(getResources().getString(R.string.detail_uri_arg), uri.toString());
             MovieDetailsFragment detailsFragment = new MovieDetailsFragment();
             detailsFragment.setArguments(args);
-            getSupportFragmentManager().beginTransaction().replace(R.id.movies_detail_container, detailsFragment).commit();
 
-//            //creating the trailers fragment
-            TrailersFragment tf = new TrailersFragment();
-            FetchTrailersTask ft = new FetchTrailersTask(this,(FetchTrailersTask.TrailersCallback)tf);
+
+            FetchTrailersTask ft = new FetchTrailersTask(this,(FetchTrailersTask.TrailersCallback)detailsFragment);
             ft.execute(imdb);
-            getSupportFragmentManager().beginTransaction().replace(R.id.trailers_container, tf, TRAILERS_FRAGMENT_TAG).commit();
 
-            //creating the reviews fragment
-            ReviewsFragment rf = new ReviewsFragment();
-            FetchReviewsTask fr = new FetchReviewsTask(this,(FetchReviewsTask.ReviewsCallback)rf);
+            FetchReviewsTask fr = new FetchReviewsTask(this,(FetchReviewsTask.ReviewsCallback)detailsFragment);
             fr.execute(imdb);
-            getSupportFragmentManager().beginTransaction().replace(R.id.reviews_container, rf, REVIEWS_FRAGMENT_TAG).commit();
+
+            getSupportFragmentManager().beginTransaction().replace(R.id.movies_detail_container, detailsFragment).commit();
 
         }
         else {
