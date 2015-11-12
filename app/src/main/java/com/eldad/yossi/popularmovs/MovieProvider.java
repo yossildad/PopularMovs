@@ -67,7 +67,6 @@ public class MovieProvider extends ContentProvider {
         int rowsNum = -1;
         //in order to delete all the table when selection is null
         if (selection == null) selection = "1";
-        Log.v("PMS", "delete");
         moviesDbHelper = new MoviesDbHelper(getContext());
         final SQLiteDatabase db = moviesDbHelper.getWritableDatabase();
 
@@ -119,7 +118,6 @@ public class MovieProvider extends ContentProvider {
                  SQLiteDatabase db = moviesDbHelper.getReadableDatabase();
                  String id = uri.getLastPathSegment();
                  c = db.query(MovieContract.MOVIE_TABLE_NAME, projection, MovieContract._ID + " = ? ", new String[]{id}, null, null, sortOrder);
-                 Log.v("PMS", "Query MOVIE");
                  break;
              }
              //for the home screen in which
@@ -127,24 +125,21 @@ public class MovieProvider extends ContentProvider {
                  MoviesDbHelper moviesDbHelper = new MoviesDbHelper(getContext());
                  SQLiteDatabase db = moviesDbHelper.getReadableDatabase();
                  c = db.query(MovieContract.MOVIE_TABLE_NAME,projection,selection,selectionArgs,null,null,sortOrder);
-  //               if (c.moveToFirst())
-                 Log.v("PMS", "Query movies list.");
                  break;
              }
-
+            //for favorite movie
              case FAVORITE: {
                  MoviesDbHelper moviesDbHelper = new MoviesDbHelper(getContext());
                  SQLiteDatabase db = moviesDbHelper.getReadableDatabase();
                  String id = uri.getLastPathSegment();
                  c = db.query(MovieContract.FAVORIT_TABLE_NAME, projection, MovieContract._ID + " = ? ", new String[]{id}, null, null, sortOrder);
-                 Log.v("PMS", "Query Favorite");
                  break;
              }
+             //for favorites sorting in the main activity
              case FAVORITES_LIST:{
                  MoviesDbHelper moviesDbHelper = new MoviesDbHelper(getContext());
                  SQLiteDatabase db = moviesDbHelper.getReadableDatabase();
                  c = db.query(MovieContract.FAVORIT_TABLE_NAME,projection,selection,selectionArgs,null,null,sortOrder);
-                 Log.v("PMS", "Query FAVORITE LIST");
                  break;
              }
 
@@ -153,7 +148,6 @@ public class MovieProvider extends ContentProvider {
                  throw new UnsupportedOperationException("Unknown uri: " + uri);
              }
          }
-        //if (c.getCount() > 0)
         c.setNotificationUri(getContext().getContentResolver(), uri);
 
         return c;
@@ -188,7 +182,6 @@ public class MovieProvider extends ContentProvider {
 
     @Override
     public int bulkInsert(Uri uri, ContentValues[] values) {
-        Log.v("PMS", "bulkinsert");
         String tableName;
         //matching the uri and deciding where to insert the data
         if (matcher.match(uri) == MOVIES_LIST)
@@ -201,14 +194,12 @@ public class MovieProvider extends ContentProvider {
         }
         else
             tableName = null;
-        Log.v("POPS3", "bulk insert before if ");
         if (tableName != null && values != null) {
             SQLiteDatabase db = moviesDbHelper.getWritableDatabase();
             db.beginTransaction();
 
             try {
                 for (ContentValues cv : values) {
-                    Log.v("PMS", "Poster in bulk insert is: " + cv.get(MovieContract.COLUMN_POSTER));
                     long newId = db.insertOrThrow(tableName, null, cv);
 
                     if (newId == -1)
@@ -218,18 +209,15 @@ public class MovieProvider extends ContentProvider {
             }
             catch (SQLException e)
             {
-                Log.e("PMS","failed to insert row in bulk insert. the uri is: " + uri.toString());
+                Log.e("PopularMovs","failed to insert row in bulk insert. the uri is: " + uri.toString());
             } finally {
                 db.setTransactionSuccessful();
                 db.endTransaction();
                 getContext().getContentResolver().notifyChange(uri, null);
-                Log.v("PMS", "bulk insert finaly. uri is " + uri.toString());
-
-            }
+                }
         }
             else
             {
-                Log.v("POPS3", "bulk insert else ");
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
             }
         return values.length;

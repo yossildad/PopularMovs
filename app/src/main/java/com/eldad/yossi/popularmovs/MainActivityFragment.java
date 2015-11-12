@@ -44,6 +44,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     private static final String[] MOVIE_COLUMNS = {
             MovieContract._ID,
             MovieContract.COLUMN_POSTER,
+            //needed in order to correlate between the movie table and the favorite table since the _id is sequence and not meaningful
             MovieContract.COLUMN_IMDB_ID,
                             };
 
@@ -57,7 +58,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        Log.v("PMS","Fragment on Create");
+
     }
 
     public MainActivityFragment() {
@@ -67,7 +68,6 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     public void onActivityCreated(Bundle savedInstanceState) {
         getLoaderManager().initLoader(0,null,this);
         super.onActivityCreated(savedInstanceState);
-        Log.v("PMS", "Fragment onActivityCreated");
     }
 
     @Override
@@ -76,11 +76,10 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
 
         //getting the prefered sort order. popular is the default is the values was not changed/set by the user
         SharedPreferences shp = PreferenceManager.getDefaultSharedPreferences(getContext());
-        Log.v("PMS","Fragment onCreateView");
         mSortOrder = shp.getString(getResources().getString(R.string.preference_file_key), getResources().getString(R.string.sotr_popular));
 
         mMovieAdapter = new MoviesAdapter(getContext(),null,0);
-        //inflating the fragment
+        //inflating the fragment and setting the adapter
         View rootView = inflater.inflate(R.layout.fragment_movies_list, container, false);
         mMoviesGrid = (GridView) rootView.findViewById(R.id.movies_list);
         mMoviesGrid.setAdapter(mMovieAdapter);
@@ -92,27 +91,22 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
             public void onScrollStateChanged(AbsListView view, int scrollState) {
                     //loading the next page if the user is reaching the end of the list
                     if (totalItems > 0) {
-//                        if ((firstVisItem + totaVislItems) / totalItems > Double.parseDouble(getActivity().getResources().getString(R.string.movies_list_page_percent))) {
-                        if ((firstVisItem + totaVislItems) / totalItems > 0.8) {
+                        if ((firstVisItem + totaVislItems) / totalItems > Double.parseDouble(getActivity().getResources().getString(R.string.movies_list_page_percent))) {
                             mPage = mPage + 1;
-
                             LoadPage(mSortOrder, Integer.toString(mPage));
-                            Log.v("PMS", "Fragment onScrollChanged");
-                        }
+                            }
                     }
             }
 
             @Override
             public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-                Log.v("PMS","Fragment onScroll. first visiable item is: " + firstVisibleItem);
-                firstVisItem = firstVisibleItem;
+                 firstVisItem = firstVisibleItem;
                 totaVislItems = visibleItemCount;
                 totalItems = totalItemCount;
 
                 if (firstVisibleItem != 0){
                     mScrollPosition = firstVisibleItem;
                 }
-
             }
 
         });
@@ -132,23 +126,24 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
             mPage = savedInstanceState.getInt(getResources().getString(R.string.saved_page));
             mScrollPosition = savedInstanceState.getInt(getResources().getString(R.string.movies_grid_scroll_pos));
         }
+        if (mScrollPosition == GridView.INVALID_POSITION){
+            mMoviesGrid.smoothScrollToPosition(0);
 
+        }
         return rootView;
     }
 
     public void refreshData(){
         getLoaderManager().restartLoader(0,null,this);
-        Log.v("POPS2", "Fragment refreshData");
     }
 
     public void LoadPage(String sort, String page){
-        Log.v("PMS","Fragment LoadPage sort is: " + sort);
-        //if the sorting is by favorits there is no reason to start the AsyncTask.
+
+        //if the sorting is by favorites there is no reason to start the AsyncTask.
          if (sort != getActivity().getResources().getString(R.string.sort_favorites)){
                         //initiating AsyncTask to Fetch the data from TMDB and inserting it to the DB
             FetchMovieTask fetchMovieTask = new FetchMovieTask(getContext());
             //using the sort from the shared preferences and the page from saved instance
-             Log.v("PMS","Fragment LoadPage calling execute ");
             fetchMovieTask.execute(sort, page);
 
         }
@@ -164,7 +159,6 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
         //saving the current page in the save instance
         outState.putInt(getResources().getString(R.string.saved_page), mPage);
         outState.putInt(getResources().getString(R.string.movies_grid_scroll_pos),mScrollPosition);
-        outState.putInt(getResources().getString(R.string.movies_grid_sort_order),mScrollPosition);
     }
 
     @Override
@@ -176,19 +170,19 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         String sortOrder = MovieContract._ID + " ASC";
+
+        //if the sotring is by favorites the cursor should take the data from favorites table since it is not delete every time
         if (mSortOrder.equals(getActivity().getResources().getString(R.string.sort_favorites))) {
-                Log.v("PMS", "Fragment onCreateLoader sort is favorites");
-                return new CursorLoader(getActivity(), MovieContract.FAVORIT_CONTENT_URI, MOVIE_COLUMNS, null, null, sortOrder);
+            return new CursorLoader(getActivity(), MovieContract.FAVORIT_CONTENT_URI, MOVIE_COLUMNS, null, null, sortOrder);
         }
         else {
-            Log.v("PMS", "Fragment onCreateLoader sort is NOT favorites");
             return new CursorLoader(getActivity(), MovieContract.MOVIE_CONTENT_URI, MOVIE_COLUMNS, null, null, sortOrder);
         }
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        Log.v("PMS", "Fragment onLoadeFinished");
+       //keaping the scroll position
         mMoviesCursorData = data;
         mMovieAdapter.swapCursor(data);
         if (mScrollPosition != GridView.INVALID_POSITION){

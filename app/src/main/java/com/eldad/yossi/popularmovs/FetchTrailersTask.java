@@ -19,6 +19,7 @@ import javax.net.ssl.HttpsURLConnection;
 
 /**
  * Created by Yossi on 06/11/2015.
+ *  * this task is fetching the trailers keys of a specific movie from TMDB
  */
 public class FetchTrailersTask extends AsyncTask<String,String,String[]> {
 
@@ -80,14 +81,12 @@ public class FetchTrailersTask extends AsyncTask<String,String,String[]> {
 
                 }
                 else{
-                    Log.v("PMR", "do in background return 0");
-                return null;}
+                    return null;}
             }
             else {
-            return null;}
+                return null;}
         }
         catch (IOException e){
-            Log.v("PMR", "do in background exception");
             return null;
         }
         return keys;

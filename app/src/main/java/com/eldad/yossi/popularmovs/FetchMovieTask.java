@@ -28,7 +28,6 @@ public class FetchMovieTask extends AsyncTask<String,Integer,Integer> {
 
 
     private Context mContext;
-   // private MoviesAdapter mAdapter;
     private int mTotalPages;
     private int mTotalResults;
 
@@ -37,20 +36,10 @@ public FetchMovieTask(Context context){
     boolean isNull = false;
     if (mContext == null)
         isNull = true;
-    Log.v("POPS2", "Task contructor. mContent is null? - " + isNull);
     mContext = context;
-   // mAdapter = adapter;
-    }
-
-    @Override
-    protected void onPostExecute(Integer o) {
-        super.onPostExecute(o);
-//        if (o > 0){
-//          mFragment.onProcessFinish();
-//        }
-        Log.v("PMS", "OnPostExec");
 
     }
+
 
     @Override
     protected Integer doInBackground(String... params) {
@@ -68,8 +57,7 @@ public FetchMovieTask(Context context){
 
         //if there are no params the sorting order and page cannot be decided
         if (params.length == 0) {
-            Log.v("PMS", "doinbck. param length is 0");
-            return -1;
+           return -1;
         }
         //delete previous data since the stop and destroy methods are controled by the OS
         String page = params[1].toString();
@@ -87,7 +75,6 @@ public FetchMovieTask(Context context){
 
         try {
             Uri uriData = null;
-            Log.v("PMS", "doinback. sortType is: " + sortType + " and resource is: "+ mContext.getResources().getString(R.string.sotr_popular));
             if (mContext.getResources().getString(R.string.sort_rated).equals(sortType)) {
 
                 //building the uri in case the requested order is by user rating
@@ -129,20 +116,16 @@ public FetchMovieTask(Context context){
                 if (buffer.length() != 0)
                 {
                    //if everything was ok the new lines will be replace to old ones and the adapter will be notified by the content resolver
-                    Log.v("PMS", "do in background return value");
-                                          return UpdateSqliteCache(getMovieDetailFromJson(buffer.toString()), params[1].toString());
+                   return UpdateSqliteCache(getMovieDetailFromJson(buffer.toString()), params[1].toString());
 
                 }
                 else
-                    Log.v("PMS", "do in background return 0");
-                    return 0;
+                   return 0;
             }
             else
-                Log.v("PMS", "do in background return -1");
                 return -1;
         }
         catch (IOException e){
-            Log.v("PMS", "do in background exception");
             return -1;
         }
 
@@ -203,8 +186,6 @@ public FetchMovieTask(Context context){
                 cv.put(MovieContract.COLUMN_RELEASE_DATE, Integer.toString(julDate));
                 cv.put(MovieContract.COLUMN_VOTERS, movJson.getString(JO_VOTERS));
                 cv.put(MovieContract.COLUMN_IMDB_ID, movJson.getString(JO_IMDBID));
-                Log.v("POPS2", "imdb in JSON is: " + movJson.getString(JO_IMDBID));
-
                 cvArr[i] = cv;
                 }
         }
@@ -216,8 +197,7 @@ public FetchMovieTask(Context context){
     }
     public String CreatePosterUrl (String eofURL){
         Uri imageUri = Uri.parse( mContext.getResources().getString(R.string.image_base_url)).buildUpon().appendPath(mContext.getResources().getString(R.string.image_format)).appendEncodedPath(eofURL).build();
-       // return mContext.getResources().getString(R.string.image_base_url) + "/" + mContext.getResources().getString(R.string.image_format)+"/"+eofURL;
-        return imageUri.toString();
+       return imageUri.toString();
     }
 
     //adds movies to the db if they are not already there.
@@ -235,7 +215,6 @@ public FetchMovieTask(Context context){
 
         //if this is the first page then the db should be emptied since I can't clear the cache on onStop (happens too "often") or on onDestroy (happens too rare)
         if (lcPage == 1){
-            Log.v("POPS3","update sql cache delete");
             cr.delete(MovieContract.MOVIE_CONTENT_URI,null,null);
         }
 

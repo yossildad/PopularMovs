@@ -22,23 +22,19 @@ import android.widget.Toast;
 import com.squareup.picasso.Picasso;
 
 /**
- * Created by Tamar on 26/10/2015.
+ * Created by Yossi on 26/10/2015.
  */
-//public class MovieDetailsFragment extends android.support.v4.app.Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 public class MovieDetailsFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, FetchTrailersTask.TrailersCallback, FetchReviewsTask.ReviewsCallback{
 
-//    private ArrayList<String> mReviewsList = null;
-//    private ReviewsAdapter mReviewsAdapter = null;
-//
-//    private TrailersAdapter mAdapter = null;
+    //used when adding the reviews and trailers views on runtime
     private ViewGroup mReviewsContainer;
     private ViewGroup mTrailersContainer;
     private String[] mKeys = null;
     private String[] mReviews = null;
-    private static final int TRAILER_KEYS_TAG_POS = 1;
 
     private boolean mIsFavorites;
     private MovieDetailHolder holder;
+
     //the projection for the Loaders
     private static final String[] MOVIE_DETAILS_COLUMNS = {
             MovieContract._ID,
@@ -62,30 +58,45 @@ public class MovieDetailsFragment extends Fragment implements LoaderManager.Load
 
     }
 
+    @Override
+    public void onStop() {
+        super.onStop();
+    }
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        Bundle args = getArguments();
 
-                if (args != null) {
+        Bundle args = getArguments();
+        if (args != null) {
             mUri = Uri.parse(args.getString(getResources().getString(R.string.detail_uri_arg)));
         }
         View rootView = inflater.inflate(R.layout.fragment_movie_details, container, false);
+        holder = new MovieDetailHolder(rootView);
+
+        //restoring the data so views that was added on runtime will work ok.
         if (savedInstanceState != null){
             mKeys = savedInstanceState.getStringArray(getActivity().getResources().getString(R.string.trailers_instance_key));
             mReviews = savedInstanceState.getStringArray(getActivity().getResources().getString(R.string.reviews_instance_key));
             mReviewsContainer = (ViewGroup)rootView.findViewById(R.id.reviews_container);
             mTrailersContainer = (ViewGroup)rootView.findViewById(R.id.trailers_container);
+            //readding the views after rotation
             InitTrailerViews();
             InitReviewViews();
         }
-        holder = new MovieDetailHolder(rootView);
+
+        //if there is no data in the intent that means we are in a master detail mode
+        if (getActivity().getIntent().getData() == null){
+            holder.star.setVisibility(View.INVISIBLE);
+            holder.textTitle.setVisibility(View.INVISIBLE);
+        }
         return rootView;
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        //saving the data for the trailers and reviews
         outState.putStringArray(getActivity().getResources().getString(R.string.trailers_instance_key),mKeys);
         outState.putStringArray(getActivity().getResources().getString(R.string.reviews_instance_key),mReviews);
     }
@@ -111,8 +122,9 @@ public class MovieDetailsFragment extends Fragment implements LoaderManager.Load
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, final Cursor data) {
-
-
+        //making this object visible befoew the data is shown
+        holder.star.setVisibility(View.VISIBLE);
+        holder.textTitle.setVisibility(View.VISIBLE);
 
         if (data != null && data.moveToFirst()) {
 
@@ -132,14 +144,14 @@ public class MovieDetailsFragment extends Fragment implements LoaderManager.Load
                                                      MovieContract.COLUMN_IMDB_ID + " = ? ",
                                                      new String[]{data.getString(MovieContract.COL_IMDBID)},
                                                      null);
+            
+            //understandig whether the is already in the favorites table
             if (favoriteCursor == null || !favoriteCursor.moveToFirst()){
                 mIsFavorites = false;
             }
             else {
                 mIsFavorites = true;
             }
-            Log.v("POPS2","Detail Fragment onLoadFinish. voters is: " + data.getString(MovieContract.COL_VOTERS));
-            Log.v("POPS2","Detail Fragment onLoadFinish. mIsFavorite is: " + mIsFavorites);
 
             //making sure that the star and the headline are hidden since the are hidden in the master detail mode app start
             holder.textTitle.setBackgroundColor(getResources().getColor(R.color.popmov_headlines));
@@ -162,26 +174,23 @@ public class MovieDetailsFragment extends Fragment implements LoaderManager.Load
                         Uri insertedUri = getActivity().getContentResolver().insert(MovieContract.FAVORIT_CONTENT_URI, cv);
                         if (insertedUri != null) {
                             mIsFavorites = true;
-                            Toast toast = Toast.makeText(getContext(), "added to favorites", Toast.LENGTH_SHORT);
+                            Toast toast = Toast.makeText(getContext(), R.string.favorites_added_text, Toast.LENGTH_SHORT);
                             toast.show();
                         }
-                    } else {
+                    }
+                    //if the movie was in the favorites table and the user pressed the star image we need to remove it from the list
+                    else {
                         String whereClause = MovieContract.COLUMN_IMDB_ID + " = ? ";
                         int deleted = getActivity().getContentResolver().delete(MovieContract.FAVORIT_CONTENT_URI, whereClause, new String[]{data.getString(MovieContract.COL_IMDBID)});
                         if (deleted > 0){
                             mIsFavorites = false;
                         }
-                        Toast toast = Toast.makeText(getContext(), Integer.toString(deleted) + " movies removed from Favorites", Toast.LENGTH_SHORT);
+                        Toast toast = Toast.makeText(getContext(), Integer.toString(deleted) + getActivity().getResources().getString(R.string.favorites_removed_text), Toast.LENGTH_SHORT);
                         toast.show();
                     }
                 }
             });
 
-        }
-        //if there is no data that mean that we are in master detail mode and the star and the headline should be hidden
-        else {
-            holder.textTitle.setBackgroundColor(Color.parseColor("#000000"));
-            holder.star.setVisibility(View.INVISIBLE);
         }
     }
 
@@ -193,6 +202,7 @@ public class MovieDetailsFragment extends Fragment implements LoaderManager.Load
     @Override
     public void OnReviewsLoadFinished(String[] reviews) {
         mReviews = reviews;
+        //creating the reviews views after the task ended
         if (reviews != null){
             InitReviewViews();
         }
@@ -202,38 +212,45 @@ public class MovieDetailsFragment extends Fragment implements LoaderManager.Load
     @Override
     public void OntrailersLoadFinished(String[] keys) {
         mKeys = keys;
+        //creating the trailers views after the task ended
         if (keys != null){
             InitTrailerViews();
         }
     }
     private void InitReviewViews (){
-        //init the reviews views
-        for (int i = 0;i<mReviews.length;i++){
-            View reviewItem = LayoutInflater.from(getActivity()).inflate(R.layout.review_item,null);
-            TextView reviewText = (TextView)reviewItem.findViewById(R.id.review_text);
-            reviewText.setText(mReviews[i]);
-            mReviewsContainer.addView(reviewItem);
+        if (mReviews != null && mReviews.length > 0) {
+            holder.ReviewsHeadline.setVisibility(View.VISIBLE);
+            //init the reviews views
+            for (int i = 0; i < mReviews.length; i++) {
+                View reviewItem = LayoutInflater.from(getActivity()).inflate(R.layout.review_item, null);
+                TextView reviewText = (TextView) reviewItem.findViewById(R.id.review_text);
+                reviewText.setText(mReviews[i]);
+                mReviewsContainer.addView(reviewItem);
+            }
         }
     }
 
     public void InitTrailerViews(){
         //init the trailers views
-        for (int i=0;i<mKeys.length;i++){
-            View trailerItem = LayoutInflater.from(getActivity()).inflate(R.layout.trailer_list_item,null);
-            TextView trailerText = (TextView) trailerItem.findViewById(R.id.trailer_text_item);
-            ImageView trailerImage = (ImageView) trailerItem.findViewById(R.id.trailer_image_item);
-            trailerText.setText("Watch trailer #"+ (i+1));
-            trailerImage.setImageResource(R.drawable.play_button);
-            trailerItem.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    //launch the youtube content provider with the key from the member
-                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.youtube.com/watch?v=" + mKeys[(int)v.getTag()]));
-                    startActivity(intent);
-                }
-            });
-            trailerItem.setTag(i);
-            mTrailersContainer.addView(trailerItem);
+        if (mKeys != null && mKeys.length > 0) {
+           holder.TrailersHeadline.setVisibility(View.VISIBLE);
+            for (int i = 0; i < mKeys.length; i++) {
+                View trailerItem = LayoutInflater.from(getActivity()).inflate(R.layout.trailer_list_item, null);
+                TextView trailerText = (TextView) trailerItem.findViewById(R.id.trailer_text_item);
+                ImageView trailerImage = (ImageView) trailerItem.findViewById(R.id.trailer_image_item);
+                trailerText.setText("Watch trailer #" + (i + 1));
+                trailerImage.setImageResource(R.drawable.play_button);
+                trailerItem.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        //launch the youtube content provider with the key from the member
+                        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.youtube.com/watch?v=" + mKeys[(int) v.getTag()]));
+                        startActivity(intent);
+                    }
+                });
+                trailerItem.setTag(i);
+                mTrailersContainer.addView(trailerItem);
+            }
         }
     }
 
@@ -244,6 +261,8 @@ public class MovieDetailsFragment extends Fragment implements LoaderManager.Load
         public final TextView textRating;
         public final TextView textVoters;
         public final ImageView star;
+        public final TextView TrailersHeadline;
+        public final TextView ReviewsHeadline;
         public  MovieDetailHolder(View view){
             imagePoster = (ImageView)view.findViewById(R.id.movie_details_poster);
             textTitle = (TextView)view.findViewById(R.id.movie_details_title);
@@ -251,6 +270,8 @@ public class MovieDetailsFragment extends Fragment implements LoaderManager.Load
             textRating = (TextView)view.findViewById(R.id.movie_details_rating);
             textVoters = (TextView)view.findViewById(R.id.movie_details_voters);
             star = (ImageView)view.findViewById(R.id.star);
+            TrailersHeadline = (TextView)view.findViewById(R.id.trailers_headline);
+            ReviewsHeadline = (TextView)view.findViewById(R.id.reviews_headline);
         }
     }
 

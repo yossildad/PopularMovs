@@ -14,15 +14,12 @@ import com.squareup.picasso.Picasso;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 
-/**
- * Created by Yossi on 18/10/2015.
- */
 public class MoviesAdapter extends CursorAdapter {
 
     public  MoviesAdapter(Context context, Cursor c, int flags) {super(context, c, flags);}
 
     //defining the cols order so the cursor can be accessed correctly
-    //it is localy defined since the projection for the movie list is different the the movie details
+    //it is locally defined since the projection for the movie list is different the the movie details
         static final int COL_ID = 0;
         static final int COL_POSTER = 1;
 
@@ -30,13 +27,11 @@ public class MoviesAdapter extends CursorAdapter {
 
     @Override
     public View newView(Context context, Cursor cursor, ViewGroup parent) {
-        Log.v("POP4", "newView");
         return LayoutInflater.from(context).inflate(R.layout.grid_item_mov,parent,false);
     }
 
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
-        Log.v("PMS", "bindView");
         ViewHolder viewHolder = new ViewHolder(view);
         String decodeUrl = null;
         ImageView imageView = viewHolder.imageView;
@@ -50,7 +45,6 @@ public class MoviesAdapter extends CursorAdapter {
         }
         Picasso.with(context).load(decodeUrl)
                 .into(imageView);
-        //imageView.(cursor.getString(COL_POSTER));
     }
 
     public class ViewHolder {

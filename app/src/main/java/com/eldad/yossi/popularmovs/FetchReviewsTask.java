@@ -18,7 +18,8 @@ import java.net.URL;
 import javax.net.ssl.HttpsURLConnection;
 
 /**
- * Created by Tamar on 06/11/2015.
+ * Created by Yossi on 06/11/2015.
+ * this task is fetching the review details of a specific movie from TMDB
  */
 public class FetchReviewsTask extends AsyncTask<String,String,String[]>{
 
@@ -27,6 +28,7 @@ public class FetchReviewsTask extends AsyncTask<String,String,String[]>{
 
     private ReviewsCallback mCallerActivity;
 
+   //used for updating the detail fragment when review data is fetched
     public interface ReviewsCallback{
         public void OnReviewsLoadFinished(String[] reviews);
     }
@@ -85,15 +87,13 @@ public class FetchReviewsTask extends AsyncTask<String,String,String[]>{
                     reviews= getReviewsFromJson(buffer.toString()) ;
                 }
                 else{
-                    Log.v("PMR", "do in background return 0");
                     return null;}
             }
             else {
                 return null;}
         }
         catch (IOException e){
-            Log.v("PMR", "do in background exception. " + e.toString());
-            return null;
+           return null;
         }
         return reviews;
     }
