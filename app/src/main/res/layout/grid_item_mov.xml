@@ -9,6 +9,8 @@
         android:layout_gravity="center"
         android:id="@+id/item_mov_image"
         android:adjustViewBounds="true"
+        android:background="@drawable/touch_selector"
         android:layout_weight="1"
+        android:padding="1dp"
         android:scaleType="fitXY"/>
 </LinearLayout>

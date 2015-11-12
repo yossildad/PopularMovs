@@ -19,4 +19,9 @@
     <string name="movies_grid_sort_order">SavedSortOrder</string>
     <string name="movies_list_page_percent">0.6</string>
     <string name="api_key">a26ea2689e48792c72d2cd6dc77bb996</string>
+    <string name="imdbid_key">imdbId</string>
+    <string name="trailers_instance_key">trailers_instance_key</string>
+    <string name="reviews_instance_key">ReviewsInstanceKey</string>
+    <string name="favorites_added_text">added to favorites</string>
+    <string name="favorites_removed_text">" movies removed from Favorites"</string>
 </resources>
